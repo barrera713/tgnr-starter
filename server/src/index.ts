@@ -9,6 +9,7 @@ import { UserResolver } from './resolvers/user';
 import redis from 'redis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
+import cors from 'cors';
 
 
 
@@ -27,6 +28,11 @@ const main = async () => {
   const redisClient = redis.createClient()
 
   const TWO_HOURS = 1000 * 60 * 60  // cookieAge Two Hours
+
+  app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+  }));
 
   app.use(
     session({
@@ -57,7 +63,11 @@ const main = async () => {
     context: ({req, res}) => ({ em: orm.em, req, res })
   })
   
-  apolloServer.applyMiddleware({ app }); // Create endpoint on express
+  
+  apolloServer.applyMiddleware({ 
+    app, 
+    cors: false // Cors is set through express
+  }); 
   
 
   app.get('/', (_, res) => {

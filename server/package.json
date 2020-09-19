@@ -17,6 +17,7 @@
   "devDependencies": {
     "@mikro-orm/cli": "^4.0.3",
     "@types/connect-redis": "0.0.14",
+    "@types/cors": "^2.8.7",
     "@types/express-session": "^1.17.0",
     "@types/node": "^14.11.1",
     "@types/redis": "^2.8.27",
@@ -30,6 +31,7 @@
     "argon2": "^0.27.0",
     "class-validator": "^0.12.2",
     "connect-redis": "^5.0.0",
+    "cors": "^2.8.5",
     "express-session": "^1.17.1",
     "graphql": "^15.3.0",
     "redis": "^3.0.2",
