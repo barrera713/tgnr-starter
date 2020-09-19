@@ -27,7 +27,7 @@ const main = async () => {
   const RedisStore = connectRedis(session);
   const redisClient = redis.createClient()
 
-  const TWO_HOURS = 1000 * 60 * 60  // cookieAge Two Hours
+  const TWO_HOURS = 1000 * 60 * 60 * 2 // cookieAge Two Hours
 
   app.use(cors({
     origin: "http://localhost:3000",

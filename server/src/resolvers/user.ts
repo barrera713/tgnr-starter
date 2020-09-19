@@ -29,7 +29,7 @@ class UserResponse {
     // If successful will return user
     // else return errors
     @Field(() => [FieldError], { nullable: true })
-    errors?: FieldError[]
+    errors?: FieldError[];
 
     @Field(() => User, {nullable: true})
     user?: User

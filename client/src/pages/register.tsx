@@ -1,39 +1,42 @@
 import React from 'react';
 import { Formik, Form, Field} from 'formik'
-import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/core'
+import { Box, Button } from '@chakra-ui/core'
 import { Wrapper } from '../components/wrapper'
 import { InputField } from '../components/InputField';
-import { useMutation } from 'urql';
+import { useRegisterMutation } from '../generated/graphql';
+import { toErrorMap } from '../utils/toErrorMap';
+import { useRouter } from 'next/router';
 
 
 interface registerProps {}
 
-const REGISTER_MUT = `
-mutation Register($username: String!, $password: String!) {
-    register(options: {username: $username, password: $password}) {
-      errors {
-        field
-        message
-      }
-      user {
-        username
-      }
-    }
-  }
-`
+
 
 const Register: React.FC<registerProps> = ({}) => {
-    const [, register] = useMutation(REGISTER_MUT)
+    const router = useRouter()
+    const [, register] = useRegisterMutation() // use custom hook from gen file to explicitly set grapqhl types
     return (
         <Wrapper variant="small">
             <Formik
             initialValues={{ username: "", password: "" }} 
             // able to pass in as values since intitialValues are match our mutation variables
             // otherwise they must be passed in in an object i.e {username: values.username }
-            onSubmit={(values) => {
-                return register(values)
+            onSubmit={ async (values, { setErrors }) => {
+                const response = await register(values)
+                // enable strict to true in tsconfig
+                // allows chaining to access deeply nested properties 
+                // ? returns undefined if there is no data
+                if(response.data?.register.errors) {
+                    // No need for ? here because typescript will infer that data 
+                    // is defined from the if statement
+                    // setErrors(toErrorMap(response.data.register.errors));
+                    console.log(toErrorMap(response.data.register.errors))
+                    setErrors(toErrorMap(response.data.register.errors));
+                } else if (response.data?.register.user) {
+                    // worked
+                    router.push('/')
                 }
-            } 
+            }} 
     >
       {({isSubmitting}) => (
             <Form>
