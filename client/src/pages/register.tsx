@@ -1,5 +1,5 @@
 import React from 'react';
-import { Formik, Form, Field} from 'formik'
+import { Formik, Form, Field, ErrorMessage} from 'formik'
 import { Box, Button } from '@chakra-ui/core'
 import { Wrapper } from '../components/wrapper'
 import { InputField } from '../components/InputField';
@@ -21,21 +21,19 @@ const Register: React.FC<registerProps> = ({}) => {
             initialValues={{ username: "", password: "" }} 
             // able to pass in as values since intitialValues are match our mutation variables
             // otherwise they must be passed in in an object i.e {username: values.username }
-            onSubmit={ async (values, { setErrors }) => {
+            onSubmit={ async (values, {setErrors}) => {
                 const response = await register(values)
                 // enable strict to true in tsconfig
                 // allows chaining to access deeply nested properties 
                 // ? returns undefined if there is no data
-                if(response.data?.register.errors) {
+                if (response.data?.register.errors) {
                     // No need for ? here because typescript will infer that data 
                     // is defined from the if statement
-                    // setErrors(toErrorMap(response.data.register.errors));
-                    console.log(toErrorMap(response.data.register.errors))
                     setErrors(toErrorMap(response.data.register.errors));
-                } else if (response.data?.register.user) {
+                  } else if (response.data?.register.user) {
                     // worked
-                    router.push('/')
-                }
+                    router.push("/");
+                  }
             }} 
     >
       {({isSubmitting}) => (
@@ -46,7 +44,7 @@ const Register: React.FC<registerProps> = ({}) => {
                placeholder="Username"
                type="text"
                />
-               <Box mt={4}>
+               <Box mt={6}>
                <InputField 
                name="password"
                label="password"

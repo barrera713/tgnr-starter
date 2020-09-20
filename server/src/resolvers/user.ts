@@ -59,7 +59,7 @@ export class UserResolver {
         if(options.username.length <= 2) {
             return {
                 errors: [{
-                    field: "Register error",
+                    field: "username",
                     message: "Username must be greater than 2 characters"
                 }]
             }
@@ -68,7 +68,7 @@ export class UserResolver {
         if(options.password.length <= 2) {
             return {
                 errors: [{
-                    field: "Register error",
+                    field: "password",
                     message: "Password must be greater than 2 characters"
                 }]
             }
