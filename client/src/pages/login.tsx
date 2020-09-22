@@ -1,9 +1,9 @@
 import React from 'react';
-import { Formik, Form, Field, ErrorMessage} from 'formik'
+import { Formik, Form } from 'formik'
 import { Box, Button } from '@chakra-ui/core'
 import { Wrapper } from '../components/wrapper'
 import { InputField } from '../components/InputField';
-import { useRegisterMutation } from '../generated/graphql';
+import { useLoginMutation } from '../generated/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
 import { useRouter } from 'next/router';
 
@@ -14,7 +14,7 @@ interface registerProps {}
 
 const Register: React.FC<registerProps> = ({}) => {
     const router = useRouter()
-    const [, register] = useRegisterMutation() // use custom hook from gen file to explicitly set grapqhl types
+    const [, register] = useLoginMutation() // use custom hook from gen file to explicitly set grapqhl types
     return (
         <Wrapper variant="small">
             <Formik
@@ -26,11 +26,11 @@ const Register: React.FC<registerProps> = ({}) => {
                 // enable strict to true in tsconfig
                 // allows chaining to access deeply nested properties 
                 // ? returns undefined if there is no data
-                if (response.data?.register.errors) {
+                if (response.data?.login.errors) {
                     // No need for ? here because typescript will infer that data 
                     // is defined from the if statement
-                    setErrors(toErrorMap(response.data.register.errors));
-                  } else if (response.data?.register.user) {
+                    setErrors(toErrorMap(response.data.login.errors));
+                  } else if (response.data?.login.user) {
                     router.push("/");
                   }
             }} 

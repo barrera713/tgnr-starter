@@ -2,6 +2,7 @@ import { MyContext } from "src/types";
 import { Resolver, Ctx, Arg, Mutation, InputType, Field, ObjectType, Query } from "type-graphql";
 import { User } from '../entities/User';
 const argon2 = require('argon2');
+import { EntityManager } from '@mikro-orm/postgresql'; 
 
 // generally do not have to explicitly set graphql type
 // graphql can infer it from typescript
@@ -74,17 +75,27 @@ export class UserResolver {
             }
         }
 
+        let user;
         try {
             const hashedPW = await argon2.hash(options.password);
-            const user = await em.create(User, { username: options.username, password: hashedPW })
-            await em.persistAndFlush(user);
+            // c 
+            // Manually adding this because I am using Knex and NOT Mikro
+            const result = await (em as EntityManager).createQueryBuilder(User).getKnexQuery().insert({
+                username: options.username,
+                password: hashedPW,
+                updated_at: new Date(),
+                created_at: new Date(),
+                 
+            })
+            .returning('*') // returns all fields
+            user = result[0]; 
             req.session.userId = user.id;
             return { user } // User must be return as object
         } catch (err) {
             if(err.code === '23505') {
                 return {
                     errors: [{
-                        field: "Register Failed",
+                        field: "username",
                         message: "Username has already been taken"
                     }]
                 };
@@ -92,8 +103,8 @@ export class UserResolver {
                 console.log('[ERROR]', err)
                 return {
                     errors: [{
-                        field: "Server error",
-                        message: "Check server for error"
+                        field: "username",
+                        message: "Server error, please refresh and try again."
                     }]
                 }; 
             }
@@ -109,7 +120,7 @@ export class UserResolver {
         if(!user) {
             return {
                 errors: [{
-                    field: 'login',
+                    field: 'username',
                     message: "Username or password does not match."
                 }]
             }
@@ -119,7 +130,7 @@ export class UserResolver {
             // server side error
             return {
                 errors: [{
-                    field: 'login',
+                    field: 'username',
                     message: "Username or password does not match."
                 }]
             }
