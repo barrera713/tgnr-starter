@@ -112,6 +112,17 @@ export type LoginMutation = (
   ) }
 );
 
+export type FindUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FindUserQuery = (
+  { __typename?: 'Query' }
+  & { findUser: (
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'username'>
+  ) }
+);
+
 export type RegisterMutationVariables = Exact<{
   username: Scalars['String'];
   password: Scalars['String'];
@@ -150,6 +161,18 @@ export const LoginDocument = gql`
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
+};
+export const FindUserDocument = gql`
+    query findUser {
+  findUser {
+    id
+    username
+  }
+}
+    `;
+
+export function useFindUserQuery(options: Omit<Urql.UseQueryArgs<FindUserQueryVariables>, 'query'> = {}) {
+  return Urql.useQuery<FindUserQuery>({ query: FindUserDocument, ...options });
 };
 export const RegisterDocument = gql`
     mutation Register($username: String!, $password: String!) {

@@ -12,7 +12,7 @@ interface registerProps {}
 
 
 
-const Register: React.FC<registerProps> = ({}) => {
+const Login: React.FC<registerProps> = ({}) => {
     const router = useRouter()
     const [, register] = useLoginMutation() // use custom hook from gen file to explicitly set grapqhl types
     return (
@@ -58,7 +58,7 @@ const Register: React.FC<registerProps> = ({}) => {
                     variantColor="green"
                     type="submit"
                 >
-                    Register
+                    Login
                 </Button>
             </Form>
       )}
@@ -69,4 +69,4 @@ const Register: React.FC<registerProps> = ({}) => {
 
 // Must export default components in Next.js
 // Next.js automatically sets export as a page route
-export default Register;
+export default Login;
