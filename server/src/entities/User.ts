@@ -23,6 +23,10 @@ export class User {
   @Property({type: 'text', unique: true })
   username!: string;
 
+  @Field(() => String) // If field is not listed, it will not allow Graphql to query it
+  @Property({type: 'text', unique: true })
+  email!: string;
+
   // removed Field as to not alloq graphql to query
   @Property({type: 'text'})
   password!: string;

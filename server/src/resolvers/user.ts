@@ -40,7 +40,11 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
-
+    @Mutation(() => Boolean)
+    async forgotPassword(@Arg('email') email: string, @Ctx() {em}: MyContext ) {
+        // const user = await em.findOne(User, { email: options.ema il })
+        return true;
+    }
 
     @Query(() => User, { nullable: true })
     async findUser(@Ctx() { em, req }: MyContext)  {
