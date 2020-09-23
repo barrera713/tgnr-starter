@@ -1,4 +1,4 @@
-import { __prod__ } from './entities/constants'
+import { COOKIE_NAME, __prod__ } from './entities/constants'
 import { MikroORM } from "@mikro-orm/core";
 import mikroConfig from './mikro-orm.config';
 import express from 'express';
@@ -36,7 +36,7 @@ const main = async () => {
 
   app.use(
     session({
-      name: 'qid', 
+      name: COOKIE_NAME, 
       store: new RedisStore({ 
         client: redisClient,
         disableTouch: true  // persist data on user activity (See docs:)
@@ -47,7 +47,7 @@ const main = async () => {
          sameSite: 'lax', // csrf
          secure: __prod__// cookie only works in https
         },
-        secret: 'keyboard cat',
+        secret: 'keyboard cat', // ideally this is a longer string that is hidden in env
         resave: false,
         saveUninitialized: false // Does not store empty sessions
     })

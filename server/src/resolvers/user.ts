@@ -3,6 +3,7 @@ import { Resolver, Ctx, Arg, Mutation, InputType, Field, ObjectType, Query } fro
 import { User } from '../entities/User';
 const argon2 = require('argon2');
 import { EntityManager } from '@mikro-orm/postgresql'; 
+import { COOKIE_NAME } from "../entities/constants";
 
 // generally do not have to explicitly set graphql type
 // graphql can infer it from typescript
@@ -140,6 +141,26 @@ export class UserResolver {
         return { user }
         
         
+    }
+
+
+
+    @Mutation(() => Boolean)
+        logout( @Ctx() { req, res }: MyContext) {
+            return new Promise((resolve) => 
+            // destroys session from Redis store
+            req.session.destroy( (err: any) => {
+                // clears cookie in server memory
+                // regardless if it was able to destroy session from Redis
+                res.clearCookie(COOKIE_NAME)
+                if (err) {
+                    console.log('[SESSION DESTROY ERROR:', err)
+                    resolve(false);
+                    return;
+                };
+
+            resolve(true);
+        }))
     }
     
 } 

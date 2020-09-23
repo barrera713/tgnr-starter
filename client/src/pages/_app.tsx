@@ -5,6 +5,7 @@ import { cacheExchange, QueryInput, Cache } from '@urql/exchange-graphcache';
 import theme from '../theme'
 import { FindUserDocument, FindUserQuery, LoginMutation, RegisterMutation } from '../generated/graphql';
 
+// helper function that will cast the types
 function customUpdateQuery<Result, Query>(
   cache: Cache,
   qi: QueryInput,
@@ -32,6 +33,7 @@ const client = createClient({
             _result,
             (result, query) => {
               if(result.login.errors) {
+                // returns current query 
                 return query;
               } else {
                 return {
