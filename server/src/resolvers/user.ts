@@ -41,7 +41,7 @@ class UserResponse {
 export class UserResolver {
 
 
-    @Query(() => User, { nullable: false })
+    @Query(() => User, { nullable: true })
     async findUser(@Ctx() { em, req }: MyContext)  {
         if(!req.session.userId) {
             // Not logged in
