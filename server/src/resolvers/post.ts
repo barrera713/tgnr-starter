@@ -2,7 +2,6 @@ import { MyContext } from "src/types";
 import { Resolver, Query, Ctx, Arg, Mutation } from "type-graphql";
 import { Post } from '../entities/Post';
 
-
 @Resolver()
 export class PostResolver {
     @Query(() => [Post]) // explicit type for Graphql

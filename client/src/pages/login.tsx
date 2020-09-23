@@ -6,6 +6,8 @@ import { InputField } from '../components/InputField';
 import { useLoginMutation } from '../generated/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
 import { useRouter } from 'next/router';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../utils/createUrqlClient';
 
 
 interface registerProps {}
@@ -69,4 +71,7 @@ const Login: React.FC<registerProps> = ({}) => {
 
 // Must export default components in Next.js
 // Next.js automatically sets export as a page route
-export default Login;
+
+
+// wrap with this to decide if the page needs server side rendering
+export default withUrqlClient(createUrqlClient)(Login); 
