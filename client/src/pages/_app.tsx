@@ -3,7 +3,7 @@ import React from 'react'
 import { createClient, Provider, fetchExchange, dedupExchange } from 'urql';
 import { cacheExchange, QueryInput, Cache } from '@urql/exchange-graphcache';
 import theme from '../theme'
-import { FindUserDocument, FindUserQuery, LoginMutation, RegisterMutation } from '../generated/graphql';
+import { FindUserDocument, FindUserQuery, LoginMutation, LogoutMutation, RegisterMutation, useFindUserQuery } from '../generated/graphql';
 
 // helper function that will cast the types
 function customUpdateQuery<Result, Query>(
@@ -25,6 +25,14 @@ const client = createClient({
   exchanges: [dedupExchange, cacheExchange({
     updates: {
       Mutation: {
+        logout: (_result, args, cache, info) => {
+          customUpdateQuery<LogoutMutation, FindUserQuery>(
+            cache, 
+            { query: FindUserDocument},
+            _result,
+            () => ({findUser: null})
+          );
+        }, 
         // the name must match our mutation
         login: (_result, args, cache, info) => {
            customUpdateQuery<LoginMutation, FindUserQuery>(
