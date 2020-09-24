@@ -1,33 +1,61 @@
-import { Box, Button } from '@chakra-ui/core';
+import { Alert, AlertIcon, Box, Button } from '@chakra-ui/core';
 import { Formik, Form } from 'formik';
 import { NextPage } from 'next';
-// Next.js convention to name files with [] if a variable in in the url
-// In this case token is the variable
-import React from 'react';
+import { withUrqlClient } from 'next-urql';
+import { useRouter } from 'next/dist/client/router';
+import React, { useState } from 'react';
 import { InputField } from '../../components/InputField';
 import { Wrapper } from '../../components/wrapper';
+import { useChangePasswordMutation } from '../../generated/graphql';
+import { createUrqlClient } from '../../utils/createUrqlClient';
 import { toErrorMap } from '../../utils/toErrorMap';
-import register from '../register';
+// Next.js convention to name files with [] if a variable in in the url
+// In this case token is the variable
 
 
 
 const ChangePassword: NextPage<{token: string}> = ({ token }) => {
+
+    const router = useRouter()
+    const [tokenError, setTokenError] = useState("");
+    const [, changePassword] = useChangePasswordMutation()
+
     return <Wrapper variant="small">
             <Formik
                 initialValues={{ newPassword: '' }} 
                 // able to pass in as values since intitialValues are match our mutation variables
                 // otherwise they must be passed in in an object i.e {username: values.username }
                 onSubmit={ async (values, {setErrors}) => {
-                    // const response = await register(values)
-                    // if (response.data?.login.errors) { 
-                    //     setErrors(toErrorMap(response.data.login.errors));
-                    // } else if (response.data?.login.user) {
-                    //     router.push("/");
-                    // }
+                    const response = await changePassword({ 
+                        newPassword: values.newPassword,
+                        token,
+                    });
+
+                    
+                    if (response.data?.changePassword.errors) { 
+                        const errorMap = toErrorMap(response.data.changePassword.errors);
+                        // since token is not in our initial field
+                        // create state for token error
+                        // if token error exists, then set token error from server in state
+                        if('token' in errorMap) {
+                            setTokenError(errorMap.token)
+                        } 
+                        setErrors(errorMap)
+                    } else if (response.data?.changePassword.user) {
+                        router.push("/");
+                    }
                 }} 
             >
             {({isSubmitting}) => (
                 <Form>
+                { tokenError ? 
+                <Alert status="warning">
+                    <AlertIcon />
+                    {tokenError}
+                </Alert>
+                : 
+                null
+                }
                 <Box mt={6}>
                 <InputField 
                 name="newPassword"
@@ -60,4 +88,4 @@ ChangePassword.getInitialProps = ({query}) => {
     };
 };
 
-export default ChangePassword;
+export default withUrqlClient(createUrqlClient)(ChangePassword);

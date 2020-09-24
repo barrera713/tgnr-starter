@@ -34,6 +34,62 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+
+    @Mutation(() => UserResponse)
+    async changePassword( 
+        @Arg('token') token: string,
+        @Arg('newPassword') newPassword: string,
+        @Ctx() {em, req, redis}: MyContext
+    ): Promise<UserResponse> {
+        const key = FORGOT_PASSWORD+token;
+        const userId = await redis.get(key);
+        if(!userId) {
+        
+            return {
+                errors: [
+                    {
+                        field: "token", 
+                        message: "Invalid or expired token"
+                    }
+                ]
+            }
+        }
+
+        // parsed the ID here
+        // redis may be storing everything as a string
+        const user = await em.findOne(User, {id: parseInt(userId)})
+        // Rare case, but just to be safe in case the user is no found
+        if(!user) {
+            return {
+                errors: [
+                    {
+                        field: "token",
+                        message: "User no longer exists"
+                    }
+                ]
+            }
+        } 
+
+        if(newPassword.length <= 2) {
+            return { errors: [
+                {
+                    field: "newPassword", 
+                    message: "Password must be greater than 2 characters"
+                }
+            ]};
+        }
+
+
+        user.password = await argon2.hash(newPassword);
+        em.persistAndFlush(user);
+        // delete token after password reset
+        await redis.del(key);
+        // login the user after password reset
+        req.session.userId = user.id;
+        return { user };
+
+    }
+
     @Mutation(() => Boolean)
     async forgotPassword(@Arg('email') email: string, @Ctx() {em, redis }: MyContext ) {
         const user = await em.findOne(User, { email: email })
@@ -125,7 +181,7 @@ export class UserResolver {
         if(!user) {
             return {
                 errors: [{
-                    field: 'usernameOrEmail',
+                    field: 'usernameOrEmail', // this must match the name of the form input
                     message: "Username or password does not match."
                 }]
             }

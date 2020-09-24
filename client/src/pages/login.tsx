@@ -10,6 +10,7 @@ import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 
 
+
 interface registerProps {}
 
 
