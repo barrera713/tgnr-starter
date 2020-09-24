@@ -20,7 +20,7 @@ const Login: React.FC<registerProps> = ({}) => {
     return (
         <Wrapper variant="small">
             <Formik
-            initialValues={{ username: "", password: "" }} 
+            initialValues={{ usernameOrEmail: "", password: "" }} 
             // able to pass in as values since intitialValues are match our mutation variables
             // otherwise they must be passed in in an object i.e {username: values.username }
             onSubmit={ async (values, {setErrors}) => {
@@ -40,10 +40,9 @@ const Login: React.FC<registerProps> = ({}) => {
       {({isSubmitting}) => (
             <Form>
                <InputField 
-               name="username"
-               label="username"
-               placeholder="Username"
-               type="text"
+               name="usernameOrEmail"
+               label="usernameOrEmail"
+               placeholder="Username or Email"
                />
                <Box mt={6}>
                <InputField 

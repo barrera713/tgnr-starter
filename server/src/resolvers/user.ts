@@ -109,7 +109,7 @@ export class UserResolver {
         if(!user) {
             return {
                 errors: [{
-                    field: 'username',
+                    field: 'usernameOrEmail',
                     message: "Username or password does not match."
                 }]
             }
@@ -119,7 +119,7 @@ export class UserResolver {
             // server side error
             return {
                 errors: [{
-                    field: 'username',
+                    field: 'usernameOrEmail',
                     message: "Username or password does not match."
                 }]
             }

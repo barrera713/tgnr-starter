@@ -20,11 +20,11 @@ const Register: React.FC<registerProps> = ({}) => {
     return (
         <Wrapper variant="small">
             <Formik
-            initialValues={{ username: "", password: "" }} 
+            initialValues={{ email: "", username: "", password: "" }} 
             // able to pass in as values since intitialValues are match our mutation variables
             // otherwise they must be passed in in an object i.e {username: values.username }
             onSubmit={ async (values, {setErrors}) => {
-                const response = await register(values)
+                const response = await register({options: values})
                 // enable strict to true in tsconfig
                 // allows chaining to access deeply nested properties 
                 // ? returns undefined if there is no data
@@ -43,8 +43,15 @@ const Register: React.FC<registerProps> = ({}) => {
                name="username"
                label="username"
                placeholder="Username"
-               type="text"
                />
+                <Box mt={6}>
+               <InputField 
+               name="email"
+               label="email"
+               placeholder="Email"
+               type="email"
+               />
+               </Box>
                <Box mt={6}>
                <InputField 
                name="password"
