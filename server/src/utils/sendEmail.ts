@@ -6,6 +6,7 @@ export async function sendEmail(to: string, html: string) {
   // Generate test SMTP service account from ethereal.email
   // Only needed if you don't have a real mail account for testing
 
+  // *****  ----- Consider running this function again if user expires---- *****
 //   let testAccount = await nodemailer.createTestAccount();
 //   console.log(testAccount);
 

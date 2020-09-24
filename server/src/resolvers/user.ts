@@ -3,9 +3,11 @@ import { Resolver, Ctx, Arg, Mutation, Field, ObjectType, Query } from "type-gra
 import { User } from '../entities/User';
 const argon2 = require('argon2');
 import { EntityManager } from '@mikro-orm/postgresql'; 
-import { COOKIE_NAME } from "../entities/constants";
+import { COOKIE_NAME, FORGOT_PASSWORD } from "../entities/constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
+import { v4 } from 'uuid';
+import { sendEmail } from "../utils/sendEmail";
 
 ;
 
@@ -33,8 +35,22 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
     @Mutation(() => Boolean)
-    async forgotPassword(@Arg('email') email: string, @Ctx() {em}: MyContext ) {
-        // const user = await em.findOne(User, { email: options.ema il })
+    async forgotPassword(@Arg('email') email: string, @Ctx() {em, redis }: MyContext ) {
+        const user = await em.findOne(User, { email: email })
+        if(!user) {
+            // return true for security reasons
+            // prevents attacker from continuing to fish for existing emails
+            return true;
+        }
+
+        // create token
+        // store in redis
+        // when user sends token back to server, look up value to get user.id
+        const token = v4();
+        await redis.set(FORGOT_PASSWORD + token, user.id, 'ex', 1000 * 60 * 60 * 24 * 3 ) // 3 days (arbitrary)
+        await sendEmail(email,
+            `<a href="http://localhost:3000/change-password${token}/ "> reset password</a>`
+        );
         return true;
     }
 
