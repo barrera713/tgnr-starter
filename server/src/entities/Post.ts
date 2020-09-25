@@ -1,26 +1,27 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { Field, Int, ObjectType } from 'type-graphql';
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 // We can stack decorators
 // its both an ObjectType and Entity
 @ObjectType()
 @Entity()
-export class Post {
+// Base Entity allows usage of basics commands such as .find, .insert, etc 
+export class Post extends BaseEntity {
 
   @Field( () => Int) // Explicitly set the type for each field
-  @PrimaryKey()
+  @PrimaryGeneratedColumn()
   id!: number;
   
   @Field(() => String)
-  @Property({type: 'date'})
-  createdAt = new Date();
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Field(() => String)
-  @Property({ type: 'date', onUpdate: () => new Date() }) // hook that creates new date everytime we update  
-  updatedAt = new Date();
+  @UpdateDateColumn() // hook that creates new date everytime we update  
+  updatedAt: Date;
 
   @Field(() => String) // If field is not listed, it will not allow Graphql to query it
-  @Property({type: 'text'})
+  @Column()
   title!: string;
 
 };

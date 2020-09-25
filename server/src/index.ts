@@ -1,6 +1,5 @@
+import "reflect-metadata";
 import { COOKIE_NAME, __prod__ } from './entities/constants'
-import { MikroORM } from "@mikro-orm/core";
-import mikroConfig from './mikro-orm.config';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql';
@@ -10,17 +9,25 @@ import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
+import { createConnection } from 'typeorm';
+import { Post } from './entities/Post';
+import { User } from './entities/User';
 
 
 
 const main = async () => {
-  
+  const connect = await createConnection( {
+    type: 'postgres',
+    database: 'redditClone',
+    username: 'postgres',
+    password: 'postgres',
+    logging: true, // shows executed SQL
+    synchronize: true,
+    entities: [Post, User]
+  });
   // -------------- Connects Database ------------------------------
-  const orm = await MikroORM.init(mikroConfig); // connects database
-  // only runs migrations for tables that have NOT been migrated
-  await orm.getMigrator().up(); 
-  //----------------------------------------------------------------
-  
+
+
   // ------------------ Main Program --------------------------------
   const app = express();
   
@@ -61,7 +68,7 @@ const main = async () => {
     }),
     // special object that is accesible by all resolvers
     // passing req, res into context allows access from resolvers
-    context: ({req, res}) => ({ em: orm.em, req, res, redis })
+    context: ({req, res}) => ({ req, res, redis })
   })
   
   

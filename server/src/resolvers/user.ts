@@ -2,12 +2,12 @@ import { MyContext } from "src/types";
 import { Resolver, Ctx, Arg, Mutation, Field, ObjectType, Query } from "type-graphql";
 import { User } from '../entities/User';
 const argon2 = require('argon2');
-import { EntityManager } from '@mikro-orm/postgresql'; 
 import { COOKIE_NAME, FORGOT_PASSWORD } from "../entities/constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
 import { v4 } from 'uuid';
 import { sendEmail } from "../utils/sendEmail";
+import { getConnection } from "typeorm";
 
 ;
 
@@ -39,7 +39,7 @@ export class UserResolver {
     async changePassword( 
         @Arg('token') token: string,
         @Arg('newPassword') newPassword: string,
-        @Ctx() {em, req, redis}: MyContext
+        @Ctx() {req, redis}: MyContext
     ): Promise<UserResponse> {
         const key = FORGOT_PASSWORD+token;
         const userId = await redis.get(key);
@@ -57,7 +57,8 @@ export class UserResolver {
 
         // parsed the ID here
         // redis may be storing everything as a string
-        const user = await em.findOne(User, {id: parseInt(userId)})
+        const userIdNum = parseInt(userId);
+        const user = await User.findOne(userIdNum)
         // Rare case, but just to be safe in case the user is no found
         if(!user) {
             return {
@@ -79,9 +80,7 @@ export class UserResolver {
             ]};
         }
 
-
-        user.password = await argon2.hash(newPassword);
-        em.persistAndFlush(user);
+        User.update({ id: userIdNum }, { password: await argon2.hash(newPassword)})
         // delete token after password reset
         await redis.del(key);
         // login the user after password reset
@@ -91,8 +90,8 @@ export class UserResolver {
     }
 
     @Mutation(() => Boolean)
-    async forgotPassword(@Arg('email') email: string, @Ctx() {em, redis }: MyContext ) {
-        const user = await em.findOne(User, { email: email })
+    async forgotPassword(@Arg('email') email: string, @Ctx() { redis }: MyContext ) {
+        const user = await User.findOne({ where: { email } });
         if(!user) {
             // return true for security reasons
             // prevents attacker from continuing to fish for existing emails
@@ -111,20 +110,19 @@ export class UserResolver {
     }
 
     @Query(() => User, { nullable: true })
-    async findUser(@Ctx() { em, req }: MyContext)  {
+    findUser(@Ctx() { req }: MyContext)  {
         if(!req.session.userId) {
             // Not logged in
             return null;
         } else {
-            const user = await em.findOne(User, { id: req.session.userId });
-            return user;
+            return User.findOne(req.session.userId);
         }
     }
 
     @Mutation(() => UserResponse ) 
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() {em, req}: MyContext ): Promise <UserResponse> {
+        @Ctx() {req}: MyContext ): Promise <UserResponse> {
         // Section for sanitizing data and handling errors
         const errors = validateRegister(options);
         if(errors) {
@@ -134,20 +132,23 @@ export class UserResolver {
         let user;
         try {
             const hashedPW = await argon2.hash(options.password);
-            // c 
-            // Manually adding this because I am using Knex and NOT Mikro
-            const result = await (em as EntityManager).createQueryBuilder(User).getKnexQuery().insert({
+            const result = await getConnection()
+            // User.create({}).save()
+            // alternative to creating an entity
+            // view post.ts Line 24 
+            .createQueryBuilder()
+            .insert()
+            .into(User)
+            .values({
                 username: options.username,
                 email: options.email,
-                password: hashedPW,
-                updated_at: new Date(),
-                created_at: new Date(),
-                 
+                password: hashedPW
             })
-            .returning('*') // returns all fields
-            user = result[0]; 
-            req.session.userId = user.id;
-            return { user } // User must be return as object
+            .returning('*') // * returns all fields
+            .execute()
+            user = result.raw[0] // User ID
+            req.session.userId
+            return { user };
         } catch (err) {
             if(err.code === '23505') {
                 return {
@@ -173,10 +174,10 @@ export class UserResolver {
     async login(
         @Arg('usernameOrEmail') usernameOrEmail: string,
         @Arg('password') password: string,
-        @Ctx() { em, req }: MyContext):  Promise <UserResponse> {
-        const user = await em.findOne(User, usernameOrEmail.includes('@') 
-        ? { email: usernameOrEmail }
-        : {username: usernameOrEmail }
+        @Ctx() { req }: MyContext): Promise <UserResponse> {
+        const user = await User.findOne(usernameOrEmail.includes('@') 
+        ? { where: { email: usernameOrEmail } }
+        : { where: { username: usernameOrEmail }}
         );
         if(!user) {
             return {

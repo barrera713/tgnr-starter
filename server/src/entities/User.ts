@@ -1,33 +1,33 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { Field, Int, ObjectType } from 'type-graphql';
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 // We can stack decorators
 // its both an ObjectType and Entity
 @ObjectType()
 @Entity()
-export class User {
+export class User extends BaseEntity{
 
   @Field( () => Int) // Explicitly set the type for each field
-  @PrimaryKey()
+  @PrimaryGeneratedColumn()
   id!: number;
   
   @Field(() => String)
-  @Property({type: 'date'})
-  createdAt = new Date();
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Field(() => String)
-  @Property({ type: 'date', onUpdate: () => new Date() }) // hook that creates new date everytime we update  
-  updatedAt = new Date();
+  @UpdateDateColumn() // hook that creates new date everytime we update  
+  updatedAt: Date;
 
   @Field(() => String) // If field is not listed, it will not allow Graphql to query it
-  @Property({type: 'text', unique: true })
+  @Column({ unique: true })
   username!: string;
 
   @Field(() => String) // If field is not listed, it will not allow Graphql to query it
-  @Property({type: 'text', unique: true })
+  @Column({ unique: true })
   email!: string;
 
   // removed Field as to not alloq graphql to query
-  @Property({type: 'text'})
+  @Column()
   password!: string;
 };
