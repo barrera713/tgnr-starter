@@ -1,4 +1,4 @@
-import { Alert, AlertIcon, Box, Button } from '@chakra-ui/core';
+import { Alert, AlertIcon, Box, Button, Link } from '@chakra-ui/core';
 import { Formik, Form } from 'formik';
 import { NextPage } from 'next';
 import { withUrqlClient } from 'next-urql';
@@ -9,6 +9,7 @@ import { Wrapper } from '../../components/wrapper';
 import { useChangePasswordMutation } from '../../generated/graphql';
 import { createUrqlClient } from '../../utils/createUrqlClient';
 import { toErrorMap } from '../../utils/toErrorMap';
+import NextLink from "next/link";
 // Next.js convention to name files with [] if a variable in in the url
 // In this case token is the variable
 
@@ -48,14 +49,14 @@ const ChangePassword: NextPage<{token: string}> = ({ token }) => {
             >
             {({isSubmitting}) => (
                 <Form>
-                { tokenError ? 
-                <Alert status="warning">
-                    <AlertIcon />
-                    {tokenError}
-                </Alert>
-                : 
-                null
-                }
+                    { tokenError ? 
+                    <Alert status="warning">
+                        <AlertIcon />
+                        {tokenError}
+                    </Alert>
+                    : 
+                    null
+                    }
                 <Box mt={6}>
                 <InputField 
                 name="newPassword"
@@ -63,16 +64,23 @@ const ChangePassword: NextPage<{token: string}> = ({ token }) => {
                 placeholder="New Password"
                 type="password"
                 />
-                    </Box>
-                    <Button
-                        mt={4}
-                        // pass isSubmitting value from Formik to isLoading from Chakra 
-                        isLoading={isSubmitting}
-                        variantColor="green"
-                        type="submit"
+                </Box>
+                    {tokenError 
+                    ? 
+                    <NextLink href="/forgot-password">
+                     <Link>Resend Link</Link>
+                    </NextLink>
+                    : 
+                <Button
+                    mt={4}
+                    // pass isSubmitting value from Formik to isLoading from Chakra 
+                    isLoading={isSubmitting}
+                    variantColor="green"
+                    type="submit"
                     >
-                        Change Password
-                    </Button>
+                    Change Password
+                </Button>
+                    }
                 </Form>
             )}
             </Formik>
