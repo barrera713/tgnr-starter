@@ -25,6 +25,7 @@ const main = async () => {
     synchronize: true,
     entities: [Post, User]
   });
+
   // -------------- Connects Database ------------------------------
 
 
