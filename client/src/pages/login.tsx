@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik, Form } from 'formik'
-import { Box, Button } from '@chakra-ui/core'
+import { Box, Button, Link } from '@chakra-ui/core'
 import { Wrapper } from '../components/wrapper'
 import { InputField } from '../components/InputField';
 import { useLoginMutation } from '../generated/graphql';
@@ -8,6 +8,8 @@ import { toErrorMap } from '../utils/toErrorMap';
 import { useRouter } from 'next/router';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
+import NextLink from "next/link";
+import { useState } from 'react';
 
 
 
@@ -17,6 +19,7 @@ interface registerProps {}
 
 const Login: React.FC<registerProps> = ({}) => {
     const router = useRouter()
+    const [passwordError, setPasswordError] = useState(false);
     const [, register] = useLoginMutation() // use custom hook from gen file to explicitly set grapqhl types
     return (
         <Wrapper variant="small">
@@ -33,6 +36,7 @@ const Login: React.FC<registerProps> = ({}) => {
                     // No need for ? here because typescript will infer that data 
                     // is defined from the if statement
                     setErrors(toErrorMap(response.data.login.errors));
+                    setPasswordError(true)
                   } else if (response.data?.login.user) {
                     router.push("/");
                   }
@@ -52,6 +56,13 @@ const Login: React.FC<registerProps> = ({}) => {
                placeholder="Password"
                type="password"
                />
+               {passwordError ? 
+                <NextLink href="/forgot-password">
+                     <Link ml="auto">Reset Password?</Link>
+                </NextLink>
+                :
+                null
+                }
                 </Box>
                 <Button
                     mt={4}

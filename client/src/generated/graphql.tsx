@@ -201,6 +201,16 @@ export type RegisterMutation = (
   ) }
 );
 
+export type RequestResetPasswordMutationVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+
+export type RequestResetPasswordMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'forgotPassword'>
+);
+
 export const RegularErrorFragmentDoc = gql`
     fragment RegularError on FieldError {
   field
@@ -290,4 +300,13 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const RequestResetPasswordDocument = gql`
+    mutation RequestResetPassword($email: String!) {
+  forgotPassword(email: $email)
+}
+    `;
+
+export function useRequestResetPasswordMutation() {
+  return Urql.useMutation<RequestResetPasswordMutation, RequestResetPasswordMutationVariables>(RequestResetPasswordDocument);
 };
