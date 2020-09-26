@@ -1,9 +1,11 @@
 import { Box } from '@chakra-ui/core';
 
 
+export type WrapperVariant = "small" | "regular"
+
 interface WrapperProps{
     // Using React props to render size of form
-    variant?: "small" | "regular"
+    variant?: WrapperVariant;
 }
 
 export const Wrapper: React.FC<WrapperProps> = ({
