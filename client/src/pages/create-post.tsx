@@ -1,8 +1,8 @@
 import { Box, Button } from '@chakra-ui/core';
 import { Formik, Form } from 'formik';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { InputField } from '../components/InputField';
-import { useCreatePostMutation } from '../generated/graphql';
+import { useCreatePostMutation, useFindUserQuery } from '../generated/graphql';
 import { useRouter } from 'next/router'
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
@@ -12,8 +12,16 @@ import { Layout } from '../components/Layout';
 
 
 const CreatePost: React.FC<{}> = ({}) => {
+    const [{ data, fetching }] = useFindUserQuery();
     const router = useRouter();
-    const [, CreatePost] = useCreatePostMutation()
+    const [, CreatePost] = useCreatePostMutation();
+
+    useEffect(() => {
+        // redirects to login if user is NOT loggin in
+        if(!fetching && !data?.findUser) {
+            router.replace('/login')
+        }
+    }, [fetching, data, router])
 
     return (
         <Layout variant="small">
