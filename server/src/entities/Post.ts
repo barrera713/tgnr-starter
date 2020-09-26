@@ -19,11 +19,11 @@ export class Post extends BaseEntity {
   title!: string;
 
   @Field()
-  @Column({ type: 'int', default: 0 })
+  @Column()
   text!: string;
 
   @Field()
-  @Column()
+  @Column({ type: 'int', default: 0 })
   points!: number;
 
   @Field()
