@@ -6,7 +6,7 @@ import { MiddlewareFn } from 'type-graphql';
 
 export const isAuth: MiddlewareFn<MyContext> = ({context}, next) => {
     if(!context.req.session.userId) {
-        throw new Error("Must be logged in to do that.")
+        throw new Error("unauthorized")
     }
 
     // Just like controllers, next allows us to move to the next middleware

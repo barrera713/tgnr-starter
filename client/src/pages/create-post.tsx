@@ -22,8 +22,11 @@ const CreatePost: React.FC<{}> = ({}) => {
             // able to pass in as values since intitialValues are match our mutation variables
             // otherwise they must be passed in in an object i.e {username: values.username }
             onSubmit={ async (values) => {
-                await CreatePost({ input: values })
-                router.push('/');
+                const {error} = await CreatePost({ input: values })
+                if(!error) {
+                    // handled by global handler
+                    router.push('/')
+                }
             }} 
     >
       {({isSubmitting}) => (
