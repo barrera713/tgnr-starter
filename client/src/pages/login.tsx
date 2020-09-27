@@ -10,11 +10,11 @@ import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import NextLink from "next/link";
 import { useState } from 'react';
+import { query } from '@urql/exchange-graphcache';
 
 
 
 interface registerProps {}
-
 
 
 const Login: React.FC<registerProps> = ({}) => {
@@ -38,7 +38,12 @@ const Login: React.FC<registerProps> = ({}) => {
                     setErrors(toErrorMap(response.data.login.errors));
                     setPasswordError(true)
                   } else if (response.data?.login.user) {
-                    router.push("/");
+                      // Checks for query parameters from useIsAuth
+                    if (typeof router.query.next === "string") {
+                        router.push(router.query.next)
+                    } else {
+                        router.push("/")
+                    }
                   }
             }} 
     >
