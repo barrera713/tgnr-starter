@@ -1,4 +1,3 @@
-import next from "next";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useFindUserQuery } from "../generated/graphql";

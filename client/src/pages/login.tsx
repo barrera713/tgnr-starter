@@ -10,7 +10,6 @@ import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import NextLink from "next/link";
 import { useState } from 'react';
-import { query } from '@urql/exchange-graphcache';
 
 
 
