@@ -35,23 +35,40 @@ const cursorPagination = (): Resolver  => {
       return undefined;
     }
     
-    const results: string[] = [];
     // we filtered through all the queries in cache by posts
     // fieldInfos will continue to increase as we load more data
     // results will combine a list of all paginations
     // console.log('Field Args: ', fieldArgs)
     const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`
     // console.log("key created: ", fieldKey)
-    const inCache = cache.resolveFieldByKey(entityKey, fieldKey); 
+    const inCache = cache.resolve(
+      cache.resolveFieldByKey(entityKey, fieldKey) as string,
+      "posts"
+    ); 
     // if it's not in the cache then we have a partial return
     info.partial = !inCache;
+    let hasMore = true;
+    const results: string[] = [];
     // console.log("inCache? ", inCache)
     fieldInfos.forEach(fi => {
-      const data = cache.resolveFieldByKey(entityKey, fi.fieldKey) as string[];
+      const key = cache.resolveFieldByKey(entityKey, fi.fieldKey) as string;
+      // using resolve to select nested keys
+      const data = cache.resolve(key, "posts") as string[];
+      const _hasMore = cache.resolve(key, "hasMore") 
+      // look thru all of the paginated cache
+      // if any of them have hasMore = false
+      // we reset hasMore = _hasMore
+      if(!_hasMore) {
+        hasMore = _hasMore as boolean
+      }     
       results.push(...data)
     })
 
-    return results;
+    return {
+      __typename: "PaginatedPosts",
+      hasMore,
+      posts: results
+    };
 
 
   //   const visited = new Set();
@@ -118,6 +135,9 @@ export const createUrqlClient = (ssrExchange: any) => ({
       credentials: 'include' as const,
     },
     exchanges: [dedupExchange, cacheExchange({
+      keys: {
+        PaginatedPosts: () => null
+      },
       resolvers: {
         Query: {
           // key name must match posts.graphql

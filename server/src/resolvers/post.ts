@@ -1,6 +1,6 @@
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "src/types";
-import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, Int, FieldResolver, Root } from "type-graphql";
+import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, Int, FieldResolver, Root, ObjectType } from "type-graphql";
 import { getConnection } from "typeorm";
 import { Post } from '../entities/Post';
 
@@ -15,6 +15,14 @@ class PostInput {
 }
 
 
+@ObjectType()
+class PaginatedPosts {
+    @Field(() => [Post]) 
+    posts: Post[] 
+    @Field(() => Boolean)
+    hasMore: boolean;
+}
+
 
 
 @Resolver(Post)
@@ -27,19 +35,20 @@ export class PostResolver {
         return root.text.slice(0, 50);
     }
 
-    @Query(() => [Post]) // explicit type for Graphql
+    @Query(() => PaginatedPosts) // explicit type for Graphql
     async posts(
         @Arg('limit', () => Int) limit: number,
         // first time fetched cursor will not exist
         @Arg('cursor', () => String, { nullable: true }) cursor: string | null
-    ): Promise <Post []> { // explicit type for Typescript Post return - Array of posts
-        const trueLimit = Math.min(50, limit); // cap at 50
+    ): Promise <PaginatedPosts> { // explicit type for Typescript Post return - Array of posts
+        const trueLimit = Math.min(50, limit);
+        const trueLimitPlusOne = Math.min(50, limit) + 1; // cap at 50
         // Conditional query if "cursor" exists
         const queryBuilder = getConnection()
         .getRepository(Post)
         .createQueryBuilder("p")
         .orderBy('"createdAt"', 'DESC') // double quatations in order for postgreSQL to keep the 'A' uppercase
-        .take(trueLimit) // according to docs - "take" is recommended for more complex queries instead of "limit"
+        .take(trueLimitPlusOne) // according to docs - "take" is recommended for more complex queries instead of "limit"
 
         if(cursor) {
             // *cursor* gives us the position
@@ -49,8 +58,12 @@ export class PostResolver {
             // but first cursor must be parsed into an Int
             { cursor: new Date(parseInt(cursor)) }) 
         }; 
-
-        return queryBuilder.getMany(); // .getMany() is what actually executes the SQL
+        const posts = await queryBuilder.getMany();
+        return { 
+            posts: posts.slice(0, trueLimit), 
+            // if true than we know there are more items to be fetched
+            hasMore: posts.length === trueLimitPlusOne 
+        }; // .getMany() is what actually executes the SQL
     }
 
     

@@ -29,7 +29,7 @@ const main = async () => {
     entities: [Post, User]
   });
 
-  await connect.runMigrations();
+  // await connect.runMigrations();
   // await Post.delete({})
 
   // ------------------ Main Program --------------------------------

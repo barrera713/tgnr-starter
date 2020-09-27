@@ -24,8 +24,8 @@ class FieldError {
 class UserResponse {
     // If successful will return user
     // else return errors
-    @Field(() => [FieldError], { nullable: true })
-    errors?: FieldError[];
+    @Field(() => [FieldError], { nullable: true }) // Graphql Type
+    errors?: FieldError[]; // TypeScript Type
 
     @Field(() => User, {nullable: true})
     user?: User
@@ -40,7 +40,7 @@ export class UserResolver {
         @Arg('token') token: string,
         @Arg('newPassword') newPassword: string,
         @Ctx() {req, redis}: MyContext
-    ): Promise<UserResponse> {
+    ): Promise<UserResponse> { 
         const key = FORGOT_PASSWORD+token;
         const userId = await redis.get(key);
         if(!userId) {
@@ -121,8 +121,8 @@ export class UserResolver {
 
     @Mutation(() => UserResponse ) 
     async register(
-        @Arg('options') options: UsernamePasswordInput,
-        @Ctx() {req}: MyContext ): Promise <UserResponse> {
+        @Arg('options') options: UsernamePasswordInput, // Graphql Type
+        @Ctx() {req}: MyContext ): Promise <UserResponse> { // TypeScript type
         // Section for sanitizing data and handling errors
         const errors = validateRegister(options);
         if(errors) {
