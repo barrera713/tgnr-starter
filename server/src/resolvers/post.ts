@@ -1,6 +1,7 @@
-import { isAuth } from "src/middleware/isAuth";
+import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "src/types";
-import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware } from "type-graphql";
+import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, Int } from "type-graphql";
+import { getConnection } from "typeorm";
 import { Post } from '../entities/Post';
 
 
@@ -17,8 +18,29 @@ class PostInput {
 @Resolver()
 export class PostResolver {
     @Query(() => [Post]) // explicit type for Graphql
-    posts(): Promise <Post []> { // explicit type for Typescript Post return - Array of posts
-        return Post.find()
+    async posts(
+        @Arg('limit') limit: number,
+        // first time fetched cursor will not exist
+        @Arg('cursor', () => String, { nullable: true }) cursor: string | null
+    ): Promise <Post []> { // explicit type for Typescript Post return - Array of posts
+        const trueLimit = Math.min(50, limit); // cap at 50
+        // Conditional query if "cursor" exists
+        const queryBuilder = getConnection()
+        .getRepository(Post)
+        .createQueryBuilder("p")
+        .orderBy('"createdAt"', 'DESC') // double quatations in order for postgreSQL to keep the 'A' uppercase
+        .take(trueLimit) // according to docs - "take" is recommended for more complex queries instead of "limit"
+
+        if(cursor) {
+            // *cursor* gives us the position
+            // then we decide how many we want after that position
+            queryBuilder.where('"createdAt" < :cursor', // queries the next post
+            // turn cursor into date before passing it to SQL
+            // but first cursor must be parsed into an Int
+            { cursor: new Date(parseInt(cursor)) }) 
+        }; 
+
+        return queryBuilder.getMany(); // .getMany() is what actually executes the SQL
     }
 
     
