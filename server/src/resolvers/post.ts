@@ -19,7 +19,7 @@ class PostInput {
 export class PostResolver {
     @Query(() => [Post]) // explicit type for Graphql
     async posts(
-        @Arg('limit') limit: number,
+        @Arg('limit', () => Int) limit: number,
         // first time fetched cursor will not exist
         @Arg('cursor', () => String, { nullable: true }) cursor: string | null
     ): Promise <Post []> { // explicit type for Typescript Post return - Array of posts
