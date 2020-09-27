@@ -1,6 +1,6 @@
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "src/types";
-import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, Int } from "type-graphql";
+import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, Int, FieldResolver, Root } from "type-graphql";
 import { getConnection } from "typeorm";
 import { Post } from '../entities/Post';
 
@@ -15,8 +15,18 @@ class PostInput {
 }
 
 
-@Resolver()
+
+
+@Resolver(Post)
 export class PostResolver {
+    @FieldResolver(() => String)
+    textSnippet(@Root() root: Post) {
+        // Called everytime there is Post object
+        // Not part of out table
+        // Slices the text before sending it to the client
+        return root.text.slice(0, 50);
+    }
+
     @Query(() => [Post]) // explicit type for Graphql
     async posts(
         @Arg('limit', () => Int) limit: number,
