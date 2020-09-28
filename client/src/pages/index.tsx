@@ -3,7 +3,7 @@ import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { usePostsQuery } from "../generated/graphql";
 import { Layout } from "../components/Layout";
-import { Box, Button, Flex, Heading, Link, Stack, Text} from "@chakra-ui/core";
+import { Box, Button, Flex, Heading, IconButton, Link, Stack, Text} from "@chakra-ui/core";
 import NextLink from 'next/link'
 import { useState } from "react";
 
@@ -35,16 +35,23 @@ const Index = () => {
     <Stack spacing={8}>  
     { /* ! declares data to be defined since Typescript cannot infer it */ 
     data!.posts.posts.map((p) => (
-      <Box key={p.id} shadow='md' p={2} borderWidth="1px">
-        <Heading fontSize="xl">{p.title}</Heading>
-        <Text>posted by {p.creator.username}</Text>
-        <Text mt={4}>{p.textSnippet}</Text>
-      </Box>
+      <Flex key={p.id} shadow='md' p={2} borderWidth="1px">
+        <Flex direction="column" justifyContent="center" alignItems="center" mr={4}>
+          <IconButton icon="chevron-up" aria-label="UP" /> 
+          {p.points}
+          <IconButton icon="chevron-down" aria-label="DOWN" />
+        </Flex>
+        <Box>
+          <Heading fontSize="xl">{p.title}</Heading>
+          <Text>posted by {p.creator.username}</Text>
+          <Text mt={4}>{p.textSnippet}</Text>  
+        </Box>
+      </Flex>
     ))}
     </Stack>
     )}
     { data && data.posts.hasMore ? (
-    <Flex>
+    <Flex> 
       <Button
       isLoading={fetching}
       m="auto"
