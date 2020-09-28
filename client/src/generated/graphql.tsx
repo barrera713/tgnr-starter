@@ -85,7 +85,7 @@ export type MutationUpdatePostArgs = {
 
 
 export type MutationDeletePostArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
 };
 
 
@@ -194,6 +194,16 @@ export type CreatePostMutation = (
     { __typename?: 'Post' }
     & Pick<Post, 'id' | 'creatorId' | 'updatedAt' | 'title' | 'text' | 'points'>
   ) }
+);
+
+export type DeletePostMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type DeletePostMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'deletePost'>
 );
 
 export type LoginMutationVariables = Exact<{
@@ -365,6 +375,15 @@ export const CreatePostDocument = gql`
 
 export function useCreatePostMutation() {
   return Urql.useMutation<CreatePostMutation, CreatePostMutationVariables>(CreatePostDocument);
+};
+export const DeletePostDocument = gql`
+    mutation DeletePost($id: Int!) {
+  deletePost(id: $id)
+}
+    `;
+
+export function useDeletePostMutation() {
+  return Urql.useMutation<DeletePostMutation, DeletePostMutationVariables>(DeletePostDocument);
 };
 export const LoginDocument = gql`
     mutation Login($usernameOrEmail: String!, $password: String!) {

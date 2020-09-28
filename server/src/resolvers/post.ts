@@ -145,16 +145,11 @@ export class PostResolver {
     }  
 
 
-    @Mutation(() => Boolean  ) 
-    async deletePost( @Arg("id") id: number ): Promise <boolean> { 
-        try {
-            await Post.delete(id);
-        } catch (err) {
-            // Send error to client here
-            console.log(err)
-        } 
-        return true;
-        
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)  
+    async deletePost( @Arg("id", () => Int) id: number, @Ctx() {req}: MyContext ): Promise <boolean> {   
+        await Post.delete({id, creatorId: req.session.userId }); // safely only deletes posts that belong to users
+        return true; 
     }
 
 
