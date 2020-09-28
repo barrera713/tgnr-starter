@@ -1,5 +1,5 @@
 import { MyContext } from "src/types";
-import { Resolver, Ctx, Arg, Mutation, Field, ObjectType, Query } from "type-graphql";
+import { Resolver, Ctx, Arg, Mutation, Field, ObjectType, Query, FieldResolver, Root } from "type-graphql";
 import { User } from '../entities/User';
 const argon2 = require('argon2');
 import { COOKIE_NAME, FORGOT_PASSWORD } from "../entities/constants";
@@ -32,8 +32,18 @@ class UserResponse {
 }
 
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+    // Only shows the email of the current user logged in
+    // i.e hides other users email
+    @FieldResolver(() => String)
+    email(@Root() user: User, @Ctx() {req}: MyContext ) {
+        if(req.session.userId === user.id) {
+            return user.email;
+        };
+
+        return "";
+    }
 
     @Mutation(() => UserResponse)
     async changePassword( 

@@ -35,6 +35,7 @@ export class PostResolver {
         return root.text.slice(0, 50);
     }
 
+
     @Query(() => PaginatedPosts) // explicit type for Graphql
     async posts(
         @Arg('limit', () => Int) limit: number,
@@ -43,22 +44,49 @@ export class PostResolver {
     ): Promise <PaginatedPosts> { // explicit type for Typescript Post return - Array of posts
         const trueLimit = Math.min(50, limit);
         const trueLimitPlusOne = Math.min(50, limit) + 1; // cap at 50
-        // Conditional query if "cursor" exists
-        const queryBuilder = getConnection()
-        .getRepository(Post)
-        .createQueryBuilder("p")
-        .orderBy('"createdAt"', 'DESC') // double quatations in order for postgreSQL to keep the 'A' uppercase
-        .take(trueLimitPlusOne) // according to docs - "take" is recommended for more complex queries instead of "limit"
 
+        const replacements: any[] = [trueLimitPlusOne];
+
+        // *cursor* gives us the position
+        // then we decide how many we want after that position
+        // turn cursor into date before passing it to SQL
+        // cursor must be parsed into an Int before initializing new date
         if(cursor) {
-            // *cursor* gives us the position
-            // then we decide how many we want after that position
-            queryBuilder.where('"createdAt" < :cursor', // queries the next post
-            // turn cursor into date before passing it to SQL
-            // but first cursor must be parsed into an Int
-            { cursor: new Date(parseInt(cursor)) }) 
-        }; 
-        const posts = await queryBuilder.getMany();
+            replacements.push(new Date(parseInt(cursor)));
+        }
+
+        // $1 first replacement
+        // $2 second replacement
+        // Must specify PUBLIC in PostgreSQL
+        // creator matches the graphql type
+        const posts = await getConnection().query(`
+        select p.*,
+        json_build_object(
+            'id', u.id,
+            'username', u.username,
+            'email', u.email
+        ) creator
+        from post p
+        inner join public.user u on u.id = p."creatorId"
+        ${cursor ? `where p."createdAt" < $2` : ''}
+        order by p."createdAt" DESC
+        limit $1
+        `, replacements)
+
+        // Conditional query if "cursor" exists
+        // const queryBuilder = getConnection()
+        // .getRepository(Post)
+        // .createQueryBuilder("p")
+        // .innerJoinAndSelect("p.creator", "u", 'u.id = p."creatorId"')
+        // .orderBy('p."createdAt"', 'DESC') // double quatations in order for postgreSQL to keep the 'A' uppercase
+        // .take(trueLimitPlusOne) // according to docs - "take" is recommended for more complex queries instead of "limit"
+
+        // if(cursor) {
+        //     queryBuilder.where('p."createdAt" < :cursor', // queries the next post
+        //     { cursor: new Date(parseInt(cursor)) }) 
+        // }; 
+
+        // const posts = await queryBuilder.getMany();
         return { 
             posts: posts.slice(0, trueLimit), 
             // if true than we know there are more items to be fetched
