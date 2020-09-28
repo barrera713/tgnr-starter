@@ -28,7 +28,9 @@ const Index = () => {
   : ( 
     <Stack spacing={8}>  
     { /* ! declares data to be defined since Typescript cannot infer it */ 
-    data!.posts.posts.map((p) => (
+    data!.posts.posts.map((p) => 
+    !p ? null :
+    (
       <Flex key={p.id} shadow='md' p={2} borderWidth="1px">
         <UpdootSection post={p} />
         <Box flex={1}>
