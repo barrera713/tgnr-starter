@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from 'type-graphql';
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Updoot } from './Updoot';
 import { User } from './User';
 
 // We can stack decorators
@@ -33,6 +34,9 @@ export class Post extends BaseEntity {
   // created foreign key to the user's table
   @ManyToOne(() => User, user => user.posts)
   creator: User;
+
+  @OneToMany(() => Updoot, (updoot) => updoot.post)
+  updoots: Updoot[];
 
   @Field(() => String)
   @CreateDateColumn()

@@ -1,8 +1,9 @@
 import { isAuth } from "../middleware/isAuth";
-import { MyContext } from "src/types";
+import { MyContext } from "../types";
 import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, Int, FieldResolver, Root, ObjectType } from "type-graphql";
 import { getConnection } from "typeorm";
 import { Post } from '../entities/Post';
+import { Updoot } from "../entities/Updoot";
 
 
 
@@ -144,6 +145,40 @@ export class PostResolver {
         } 
         return true;
         
+    }
+
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+        async vote( 
+        @Arg('postId', () => Int) postId: number, 
+        @Arg('value', () => Int) value: number,
+        @Ctx() { req }: MyContext) {
+        const isUpdoot = value !== -1;
+        const realValue = isUpdoot ? 1 : -1;
+        const {userId} = req.session;
+        // await Updoot.insert({
+        //     userId,
+        //     postId,
+        //     value: realValue
+        // })
+        // Same as above, but in SQL
+        // since the values are integers they can be passed as such without inserting into a prepared statment
+        // ^^ solves the the error message below vv
+        // "cannot insert multiple commands into a prepared statement" 
+        await getConnection().query(`
+        START TRANSACTION;
+
+        insert into updoot ("userId", "postId", value)
+        values (${userId}, ${postId}, ${realValue});
+
+        update post
+        set points = points + ${realValue}
+        where id = ${postId};
+
+        COMMIT;
+        `);
+        return true;
     }
    
 } 
