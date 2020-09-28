@@ -41,7 +41,7 @@ export class PostResolver {
     async posts(
         @Arg('limit', () => Int) limit: number,
         // first time fetched cursor will not exist
-        @Arg('cursor', () => String, { nullable: true }) cursor: string | null
+        @Arg('cursor', () => String, { nullable: true }) cursor: string | null,
         @Ctx() { req }: MyContext
     ): Promise <PaginatedPosts> { // explicit type for Typescript Post return - Array of posts
         const trueLimit = Math.min(50, limit);
@@ -62,7 +62,7 @@ export class PostResolver {
             replacements.push(new Date(parseInt(cursor)));
             cursorIdx = replacements.length;
         }
-
+ 
         // $1 first replacement
         // $2 second replacement
         // Must specify PUBLIC in PostgreSQL
@@ -111,10 +111,9 @@ export class PostResolver {
     post(
     // explicit type outside args for typescript
     // 'id' controls our identifier in our graphql playground
-    @Arg('id') id: number): Promise <Post | undefined> { // explicit type for Typescript Post or Null
-        return Post.findOne(id)
+    @Arg('id', () => Int) id: number): Promise <Post | undefined> { // explicit type for Typescript Post or Null
+        return Post.findOne(id, { relations: [ 'creator' ]})
     }
-
     @Mutation(() => Post) 
     @UseMiddleware(isAuth)
     async createPost(
