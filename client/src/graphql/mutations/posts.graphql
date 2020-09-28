@@ -10,6 +10,10 @@ query Posts($limit: Int!, $cursor: String) {
             textSnippet
             points
             creatorId
+            creator {
+                id
+                username
+            }
         }
     }
 }

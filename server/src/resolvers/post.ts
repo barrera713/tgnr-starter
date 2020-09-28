@@ -74,6 +74,7 @@ export class PostResolver {
         limit $1
         `, replacements)
 
+
         // Conditional query if "cursor" exists
         // const queryBuilder = getConnection()
         // .getRepository(Post)
