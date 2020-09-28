@@ -6,6 +6,7 @@ import { Layout } from "../components/Layout";
 import { Box, Button, Flex, Heading, IconButton, Link, Stack, Text} from "@chakra-ui/core";
 import NextLink from 'next/link'
 import { useState } from "react";
+import { UpdootSection } from "../components/UpdootSection";
 
 
 const Index = () => {
@@ -36,11 +37,7 @@ const Index = () => {
     { /* ! declares data to be defined since Typescript cannot infer it */ 
     data!.posts.posts.map((p) => (
       <Flex key={p.id} shadow='md' p={2} borderWidth="1px">
-        <Flex direction="column" justifyContent="center" alignItems="center" mr={4}>
-          <IconButton icon="chevron-up" aria-label="UP" /> 
-          {p.points}
-          <IconButton icon="chevron-down" aria-label="DOWN" />
-        </Flex>
+        <UpdootSection post={p} />
         <Box>
           <Heading fontSize="xl">{p.title}</Heading>
           <Text>posted by {p.creator.username}</Text>
