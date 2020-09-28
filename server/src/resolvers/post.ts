@@ -42,34 +42,44 @@ export class PostResolver {
         @Arg('limit', () => Int) limit: number,
         // first time fetched cursor will not exist
         @Arg('cursor', () => String, { nullable: true }) cursor: string | null
+        @Ctx() { req }: MyContext
     ): Promise <PaginatedPosts> { // explicit type for Typescript Post return - Array of posts
         const trueLimit = Math.min(50, limit);
         const trueLimitPlusOne = Math.min(50, limit) + 1; // cap at 50
 
         const replacements: any[] = [trueLimitPlusOne];
 
+        if(req.session.userId) {
+            replacements.push(req.session.userId);
+        }
+
         // *cursor* gives us the position
         // then we decide how many we want after that position
         // turn cursor into date before passing it to SQL
         // cursor must be parsed into an Int before initializing new date
+        let cursorIdx = 3;
         if(cursor) {
             replacements.push(new Date(parseInt(cursor)));
+            cursorIdx = replacements.length;
         }
 
         // $1 first replacement
         // $2 second replacement
         // Must specify PUBLIC in PostgreSQL
         // creator matches the graphql type
+
+        // conditionally pass userId since it may be null
         const posts = await getConnection().query(`
         select p.*,
         json_build_object(
             'id', u.id,
             'username', u.username,
             'email', u.email
-        ) creator
+        ) creator,
+        ${req.session.userId ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"' : 'null as "voteStatus"'}
         from post p
         inner join public.user u on u.id = p."creatorId"
-        ${cursor ? `where p."createdAt" < $2` : ''}
+        ${cursor ? `where p."createdAt" < ${cursorIdx}` : ''}
         order by p."createdAt" DESC
         limit $1
         `, replacements)

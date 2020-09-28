@@ -30,6 +30,9 @@ export class Post extends BaseEntity {
   @Field()
   @Column()
   creatorId: number;
+
+  @Field(() => Int, { nullable: true })
+  voteStatus: number | null
   
   // created foreign key to the user's table
   @Field(() => User)

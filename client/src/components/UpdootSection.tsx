@@ -25,6 +25,9 @@ export const UpdootSection: React.FC<UpdootSection> = ({ post }) => {
           aria-label="UP" 
           isLoading={loadingState === 'up-loading'}
           onClick={async () => {
+            if(post.voteStatus === 1) {
+              return;
+            }
             setLoadingState('up-loading')
             vote({
                 postId: post.id,
@@ -32,13 +35,17 @@ export const UpdootSection: React.FC<UpdootSection> = ({ post }) => {
             })
             setLoadingState('not-loading')
             }}
+            variantColor={post.voteStatus === 1 ? "green" : undefined}
           /> 
           {post.points}
           <IconButton 
           icon="chevron-down" 
           aria-label="DOWN"
           isLoading={loadingState === 'down-loading'}
-          onClick={() => {
+          onClick={async () => {
+            if(post.voteStatus === -1) {
+              return;
+            }
             setLoadingState('down-loading')
             vote({
                 postId: post.id,
@@ -46,6 +53,7 @@ export const UpdootSection: React.FC<UpdootSection> = ({ post }) => {
             })
             setLoadingState('not-loading')
           }}
+          variantColor={post.voteStatus === -1 ? "red" : undefined}
           />
         </Flex>
     )

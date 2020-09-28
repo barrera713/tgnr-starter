@@ -1,9 +1,11 @@
 import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import { dedupExchange, fetchExchange, Exchange, stringifyVariables } from "urql";
-import { LogoutMutation, FindUserQuery, FindUserDocument, LoginMutation, RegisterMutation } from "../generated/graphql";
+import { LogoutMutation, FindUserQuery, FindUserDocument, LoginMutation, RegisterMutation, VoteMutationVariables } from "../generated/graphql";
 import { customUpdateQuery } from "./customUpdateQuery";
 import { pipe, tap} from 'wonka';
 import Router from "next/router";
+import gql from 'graphql-tag'
+import { isServer } from "./isServer";
 
 
 // exampled copied from github by Jackfranklin
@@ -128,10 +130,18 @@ const cursorPagination = (): Resolver  => {
 
 
 
-export const createUrqlClient = (ssrExchange: any) => ({
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+  let cookie = "";
+  if(isServer()) {
+    // console.log(ctx.req.headers.cookie);
+    cookie = ctx.req.headers.cookie;
+  }
+
+  return {
     url: 'http://localhost:5000/graphql',
     fetchOptions: {
       credentials: 'include' as const,
+      headers: cookie ? { cookie } : undefined
     },
     exchanges: [dedupExchange, cacheExchange({
       keys: {
@@ -154,6 +164,40 @@ export const createUrqlClient = (ssrExchange: any) => ({
               cache.invalidate("Query", "posts", fi.arguments || {}); 
             })
           }, 
+          vote:(_result, args, cache, info) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data = cache.readFragment(
+              gql`
+              fragment _ on Post {
+                id
+                points
+                voteStatus
+              }
+            `,
+            { id: postId } as any
+            );
+
+            if(data) {
+              // if the voteStatus === 1
+              // and the user is trying to upvote it with 1
+              // we do not do anything
+              if(data.voteStatus === value) {
+                return;
+              }
+              // if the user has not voted before the value === 1
+              // if the user is switching their vote the value === 2
+              const newPoints = (data.points as number) + ((!data.voteStatus ? 1 : 2) * value);
+              cache.writeFragment(
+                gql`
+                  fragment __ on Post {
+                    points
+                    voteStatus
+                  }
+                `,
+                { id: postId, points: newPoints, voteStatus: value } as any
+              );
+            }
+          },
           logout: (_result, args, cache, info) => {
             customUpdateQuery<LogoutMutation, FindUserQuery>(
               cache, 
@@ -203,4 +247,4 @@ export const createUrqlClient = (ssrExchange: any) => ({
     errorExchange,
     ssrExchange,
     fetchExchange],
-}); 
+}}; 
