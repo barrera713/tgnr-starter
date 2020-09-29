@@ -4,6 +4,7 @@ import { Resolver, Query, Arg, Mutation, InputType, Field, Ctx, UseMiddleware, I
 import { getConnection } from "typeorm";
 import { Post } from '../entities/Post';
 import { Updoot } from "../entities/Updoot";
+import { User } from "../entities/User";
 
 
 
@@ -36,31 +37,42 @@ export class PostResolver {
         return root.text.slice(0, 50);
     }
 
+    @FieldResolver(() => User)
+    creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+        return userLoader.load(post.creatorId); // pass the creatorId so that dataloader can create one query to retrieve all users
+    };
+
+
+    @FieldResolver(() => Int, {nullable: true})
+        async voteStatus(@Root() post: Post, @Ctx() { updootLoader, req }: MyContext) {
+        // if user is not logged in they cannot upvote
+        if(!req.session.userId) {
+            return null;
+        }
+        const updoot = await updootLoader.load({postId: post.id, userId: req.session.userId })
+        
+        return updoot ? updoot.value : null;
+    };
+
 
     @Query(() => PaginatedPosts) // explicit type for Graphql
     async posts(
         @Arg('limit', () => Int) limit: number,
         // first time fetched cursor will not exist
         @Arg('cursor', () => String, { nullable: true }) cursor: string | null,
-        @Ctx() { req }: MyContext
+        @Ctx() {}: MyContext
     ): Promise <PaginatedPosts> { // explicit type for Typescript Post return - Array of posts
         const trueLimit = Math.min(50, limit);
         const trueLimitPlusOne = Math.min(50, limit) + 1; // cap at 50
 
         const replacements: any[] = [trueLimitPlusOne];
 
-        if(req.session.userId) {
-            replacements.push(req.session.userId);
-        }
-
         // *cursor* gives us the position
         // then we decide how many we want after that position
         // turn cursor into date before passing it to SQL
         // cursor must be parsed into an Int before initializing new date
-        let cursorIdx = 3;
         if(cursor) {
             replacements.push(new Date(parseInt(cursor)));
-            cursorIdx = replacements.length;
         }
  
         // $1 first replacement
@@ -70,16 +82,9 @@ export class PostResolver {
 
         // conditionally pass userId since it may be null
         const posts = await getConnection().query(`
-        select p.*,
-        json_build_object(
-            'id', u.id,
-            'username', u.username,
-            'email', u.email
-        ) creator,
-        ${req.session.userId ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"' : 'null as "voteStatus"'}
+        select p.*
         from post p
-        inner join public.user u on u.id = p."creatorId"
-        ${cursor ? `where p."createdAt" < ${cursorIdx}` : ''}
+        ${cursor ? `where p."createdAt" < $2` : ''}
         order by p."createdAt" DESC
         limit $1
         `, replacements)
@@ -112,7 +117,7 @@ export class PostResolver {
     // explicit type outside args for typescript
     // 'id' controls our identifier in our graphql playground
     @Arg('id', () => Int) id: number): Promise <Post | undefined> { // explicit type for Typescript Post or Null
-        return Post.findOne(id, { relations: [ 'creator' ]})
+        return Post.findOne(id)
     }
     @Mutation(() => Post) 
     @UseMiddleware(isAuth)

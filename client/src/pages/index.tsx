@@ -14,12 +14,12 @@ const Index = () => {
 
   const [{data:  meData}] = useFindUserQuery()
   const [variables, setVariables] = useState({limit: 15, cursor: null as null | string })
-  const [{ data, fetching }] = usePostsQuery({
+  const [{ data, error, fetching }] = usePostsQuery({
     variables
   });
 
   if(!data && !fetching) {
-    return <div>Something went wrong.</div>
+  return <div>{error?.message}</div>
   }
 
   return (
