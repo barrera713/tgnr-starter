@@ -3,12 +3,14 @@ import React from 'react';
 import NextLink from "next/link";
 import { useFindUserQuery, useLogoutMutation } from '../generated/graphql';
 import { isServer } from '../utils/isServer';
+import { useRouter } from 'next/router';
 
 
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
+    const router = useRouter();
     const [{fetching: logoutFetch}, logout] = useLogoutMutation()
     const [{data, fetching}] = useFindUserQuery({
         pause: isServer()
@@ -43,8 +45,9 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
                 <Box mr={2}>Hello, {data.findUser.username}</Box>
                 <Button 
                 variant="link"
-                onClick={() => {
-                    logout();
+                onClick={ async () => {
+                    await logout();
+                    router.reload();
                 }}
                 isLoading={logoutFetch}
                 >
